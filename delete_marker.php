@@ -2,7 +2,7 @@
 // Menghubungkan ke database
 $servername = "localhost";
 $username = "root"; // Ganti dengan username database Anda
-$password = ""; // Ganti dengan password database Anda (biarkan kosong jika tidak ada)
+$password = ""; // Ganti dengan password database Anda
 $dbname = "leaflet"; // Ganti dengan nama database Anda
 
 // Buat koneksi
@@ -13,20 +13,31 @@ if ($conn->connect_error) {
     die(json_encode(["status" => "error", "message" => "Koneksi gagal: " . $conn->connect_error]));
 }
 
-// Mendapatkan ID dari permintaan POST
-$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+// Memeriksa apakah permintaan adalah DELETE
+if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
+    // Mendapatkan ID dari query string
+    parse_str(file_get_contents("php://input"), $_DELETE);
+    $id = isset($_DELETE['id']) ? intval($_DELETE['id']) : 0;
 
-if ($id > 0) {
-    // Query untuk menghapus entri berdasarkan ID
-    $sql = "DELETE FROM locations WHERE id = $id"; // Ganti locations dengan nama tabel Anda
+    // Validasi ID
+    if ($id > 0) {
+        // Query untuk menghapus marker berdasarkan ID
+        $sql = "DELETE FROM locations WHERE id = ?";
 
-    if ($conn->query($sql) === TRUE) {
-        echo json_encode(["status" => "success", "message" => "Data berhasil dihapus"]);
+        // Persiapkan statement
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id); // "i" menunjukkan integer
+
+        if ($stmt->execute()) {
+            echo json_encode(["status" => "success", "message" => "Marker berhasil dihapus."]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Gagal menghapus marker."]);
+        }
+
+        $stmt->close();
     } else {
-        echo json_encode(["status" => "error", "message" => "Error: " . $conn->error]);
+        echo json_encode(["status" => "error", "message" => "ID tidak valid."]);
     }
-} else {
-    echo json_encode(["status" => "error", "message" => "ID tidak valid"]);
 }
 
 $conn->close();

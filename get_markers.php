@@ -1,10 +1,24 @@
 <?php
-include 'db_config.php'; // Koneksi database yang telah Anda buat
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "leaflet";
 
-// Query untuk mengambil semua lokasi yang disimpan di database
-$query = $db->query("SELECT * FROM locations");
-$locations = $query->fetchAll(PDO::FETCH_ASSOC);
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-// Mengembalikan data sebagai JSON
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$sql = "SELECT id, name, latitude, longitude, image_url FROM locations";
+$result = $conn->query($sql);
+
+$markers = array();
+while ($row = $result->fetch_assoc()) {
+    $markers[] = $row;
+}
+
 header('Content-Type: application/json');
-echo json_encode($locations);
+echo json_encode($markers);
+
+$conn->close();

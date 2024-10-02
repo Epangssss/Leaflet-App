@@ -1,20 +1,21 @@
 <?php
-include 'db_config.php'; // Koneksi database
-
-if (isset($_POST['name']) && isset($_POST['latitude']) && isset($_POST['longitude'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = $_POST['name'];
     $latitude = $_POST['latitude'];
     $longitude = $_POST['longitude'];
 
-    // Query untuk menyimpan data lokasi
-    $stmt = $db->prepare("INSERT INTO locations (name, latitude, longitude) VALUES (?, ?, ?)");
-    $result = $stmt->execute([$name, $latitude, $longitude]);
+    // Database connection
+    $conn = new mysqli('localhost', 'username', 'password', 'database');
+    if ($conn->connect_error) {
+        die('Connection failed: ' . $conn->connect_error);
+    }
 
-    if ($result) {
+    $sql = "INSERT INTO markers (name, latitude, longitude) VALUES ('$name', '$latitude', '$longitude')";
+    if ($conn->query($sql) === TRUE) {
         echo json_encode(['status' => 'success']);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Failed to save location.']);
+        echo json_encode(['status' => 'error', 'message' => $conn->error]);
     }
-} else {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid input.']);
+
+    $conn->close();
 }
