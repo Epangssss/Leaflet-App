@@ -1,9 +1,9 @@
 <?php
 // Menghubungkan ke database
 $servername = "localhost";
-$username = "root"; // Ganti dengan username database Anda
-$password = ""; // Ganti dengan password database Anda
-$dbname = "leaflet"; // Ganti dengan nama database Anda
+$username = "root";
+$password = "";
+$dbname = "leaflet";
 
 // Buat koneksi
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -14,30 +14,31 @@ if ($conn->connect_error) {
 }
 
 // Memeriksa apakah permintaan adalah DELETE
-if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
-    // Mendapatkan ID dari query string
-    parse_str(file_get_contents("php://input"), $_DELETE);
-    $id = isset($_DELETE['id']) ? intval($_DELETE['id']) : 0;
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    // Mengambil data dari body permintaan
+    parse_str(file_get_contents("php://input"), $data);
+    $id = isset($data['id']) ? intval($data['id']) : 0;
 
-    // Validasi ID
     if ($id > 0) {
-        // Query untuk menghapus marker berdasarkan ID
         $sql = "DELETE FROM locations WHERE id = ?";
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
 
-        // Persiapkan statement
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id); // "i" menunjukkan integer
-
-        if ($stmt->execute()) {
-            echo json_encode(["status" => "success", "message" => "Marker berhasil dihapus."]);
+            if ($stmt->affected_rows > 0) {
+                echo json_encode(["status" => "success", "message" => "Marker berhasil dihapus."]);
+            } else {
+                echo json_encode(["status" => "error", "message" => "ID marker tidak valid."]);
+            }
+            $stmt->close();
         } else {
-            echo json_encode(["status" => "error", "message" => "Gagal menghapus marker."]);
+            echo json_encode(["status" => "error", "message" => "Gagal menyiapkan pernyataan."]);
         }
-
-        $stmt->close();
     } else {
-        echo json_encode(["status" => "error", "message" => "ID tidak valid."]);
+        echo json_encode(["status" => "error", "message" => "ID marker tidak valid."]);
     }
+} else {
+    echo json_encode(["status" => "error", "message" => "Permintaan tidak valid."]);
 }
 
 $conn->close();

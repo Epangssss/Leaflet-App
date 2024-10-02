@@ -1,45 +1,42 @@
 <?php
-// Menghubungkan ke database
+// Connect to the database
 $servername = "localhost";
-$username = "root"; // Ganti dengan username database Anda
-$password = ""; // Ganti dengan password database Anda
-$dbname = "leaflet"; // Ganti dengan nama database Anda
+$username = "root"; // Change to your database username
+$password = ""; // Change to your database password
+$dbname = "leaflet"; // Change to your database name
 
-// Buat koneksi
+// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Periksa koneksi
+// Check connection
 if ($conn->connect_error) {
-    die(json_encode(["status" => "error", "message" => "Koneksi gagal: " . $conn->connect_error]));
+    die(json_encode(["status" => "error", "message" => "Connection failed: " . $conn->connect_error]));
 }
 
-// Memeriksa apakah permintaan adalah POST
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Mendapatkan ID dan data dari permintaan POST
+// Check if the request is POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Get the ID and data from POST request
     $id = isset($_POST['markerId']) ? intval($_POST['markerId']) : 0;
-    $name = isset($_POST['name']) ? $_POST['name'] : '';
-    $latitude = isset($_POST['latitude']) ? $_POST['latitude'] : '';
-    $longitude = isset($_POST['longitude']) ? $_POST['longitude'] : '';
+    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
 
-    // Validasi ID dan data lainnya
-    if ($id > 0 && !empty($name) && !empty($latitude) && !empty($longitude)) {
-        // Query untuk memperbarui entri berdasarkan ID
-        $sql = "UPDATE locations SET name = ?, latitude = ?, longitude = ? WHERE id = ?";
-
-        // Persiapkan statement
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssii", $name, $latitude, $longitude, $id); // "ssii" menunjukkan 2 string dan 2 integer
+    // Validate ID and name
+    if ($id > 0 && !empty($name)) {
+        // Update marker name query
+        $stmt = $conn->prepare("UPDATE locations SET name = ? WHERE id = ?");
+        $stmt->bind_param("si", $name, $id);
 
         if ($stmt->execute()) {
-            echo json_encode(["status" => "success", "message" => "Marker berhasil diperbarui."]);
+            echo json_encode(["status" => "success", "message" => "Marker name updated successfully."]);
         } else {
-            echo json_encode(["status" => "error", "message" => "Gagal memperbarui marker."]);
+            echo json_encode(["status" => "error", "message" => "Failed to update marker name."]);
         }
 
         $stmt->close();
     } else {
-        echo json_encode(["status" => "error", "message" => "ID atau data marker tidak valid."]);
+        echo json_encode(["status" => "error", "message" => "Invalid data provided."]);
     }
+} else {
+    echo json_encode(["status" => "error", "message" => "Invalid request method."]);
 }
 
 $conn->close();

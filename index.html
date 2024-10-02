@@ -167,6 +167,8 @@
         <ul id="historyList"></ul>
     </div>
 
+
+
     <!-- Include Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
@@ -312,35 +314,74 @@
                 .catch(error => console.error('Error:', error));
         }
 
-        function editMarker(id) {
-            fetch(`get_marker.php?id=${id}`)
+    function editMarker(id) {
+        fetch(`get_markers.php?id=${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    const newName = prompt("Edit Marker Name:", data.name); // Meminta input dari pengguna
+                    if (newName !== null) { // Memeriksa apakah pengguna menekan Cancel
+                        saveMarker(id, newName); // Memanggil fungsi untuk menyimpan marker
+                    }
+                } else {
+                    alert('Error fetching marker data.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function saveMarker(id, name) {
+        fetch('edit_marker.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                'markerId': id,
+                'name': name
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message); // Menampilkan pesan hasil
+                if (data.status === 'success') {
+                    loadMarkers(); // Reload markers after editing
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+
+
+
+        
+
+
+ function deleteMarker(id) {
+        if (confirm('Are you sure you want to delete this marker?')) {
+            fetch('delete_marker.php', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'id': id
+                })
+            })
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('popupTitle').innerText = "Edit Marker";
-                    document.getElementById('addLocationName').value = data.name;
-                    document.getElementById('addLatitude').value = data.latitude;
-                    document.getElementById('addLongitude').value = data.longitude;
-                    document.getElementById('markerId').value = id; // Set marker ID for editing
-                    document.getElementById('addMarkerPopup').classList.add('open');
-                });
-        }
-
-        function deleteMarker(id) {
-            if (confirm('Are you sure you want to delete this marker?')) {
-                fetch(`delete_marker.php?id=${id}`, {
-                    method: 'DELETE'
+                    alert(data.message); // Menampilkan pesan
+                    if (data.status === 'success') {
+                        loadMarkers(); // Reload markers after deletion
+                    }
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            alert(data.message);
-                            loadMarkers(); // Reload markers after deletion
-                        } else {
-                            alert('Error: ' + data.message);
-                        }
-                    });
-            }
+                .catch(error => console.error('Error:', error));
         }
+    }
+
+
+
+
 
         // Load markers when the page loads
         loadMarkers();
