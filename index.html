@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map with Popup and Delete</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+
+        .icon-btn {
+            position: absolute;
+            top: 10px;
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        #addMarkerIcon {
+            right: 50px;
+        }
+
+        #historyIcon {
+            right: 10px;
+        }
+
+        .popup-container {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            width: 300px;
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 2000;
+        }
+
+        .popup-container.open {
+            display: block;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .popup-header button {
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .popup-footer {
+            text-align: right;
+        }
+
+        .popup-footer button {
+            margin: 5px;
+        }
+
+        .popup-container input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+
+        .historyPopup ul {
+            list-style: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .historyPopup li {
+            margin-bottom: 10px;
+            text-decoration: underline;
+            cursor: pointer;
+            color: blue;
+        }
+
+        .historyPopup button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Mark a Location Leaflet SIG</h1>
+    <div id="map"></div>
+    <div id="addMarkerIcon" class="icon-btn" onclick="showAddMarkerPopup()">➕</div>
+    <div id="historyIcon" class="icon-btn" onclick="showHistoryPopup()">🗒️</div>
+
+    <!-- Popup for adding marker -->
+    <div id="addMarkerPopup" class="popup-container">
+        <div class="popup-header">
+            <h3>Add Marker</h3>
+            <button onclick="closeAddMarkerPopup()">✖</button>
+        </div>
+        <input type="text" id="addLocationName" placeholder="Location Name" />
+        <input type="text" id="addLatitude" placeholder="Latitude" readonly />
+        <input type="text" id="addLongitude" placeholder="Longitude" readonly />
+        <div class="popup-footer">
+            <button onclick="saveMarker()">Save</button>
+            <button onclick="closeAddMarkerPopup()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Popup for history markers -->
+    <div id="historyPopup" class="popup-container historyPopup">
+        <div class="popup-header">
+            <h3>History</h3>
+            <button onclick="closeHistoryPopup()">✖</button>
+        </div>
+        <ul id="historyList"></ul>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map with Jember coordinates
+        var map = L.map('map').setView([-8.1665, 113.6926], 13);
+
+        // Load tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        var marker;
+
+        // Event listener for map click to add or remove marker
+        map.on('click', function (e) {
+            // Check if there's an existing marker
+            if (marker) {
+                // If the clicked location is the same as the existing marker, remove the marker
+                if (marker.getLatLng().lat === e.latlng.lat && marker.getLatLng().lng === e.latlng.lng) {
+                    map.removeLayer(marker); // Remove the marker from the map
+                    marker = null; // Reset marker variable
+                    document.getElementById('addLatitude').value = ''; // Clear latitude input
+                    document.getElementById('addLongitude').value = ''; // Clear longitude input
+                    return; // Exit the function
+                } else {
+                    // Move the existing marker to the new location
+                    marker.setLatLng(e.latlng);
+                }
+            } else {
+                // If no marker exists, create a new one
+                marker = L.marker(e.latlng).addTo(map);
+            }
+
+            // Update latitude and longitude input fields
+            document.getElementById('addLatitude').value = e.latlng.lat;
+            document.getElementById('addLongitude').value = e.latlng.lng;
+        });
+
+        // Show add marker popup
+        function showAddMarkerPopup() {
+            if (marker) {
+                document.getElementById('addMarkerPopup').classList.add('open');
+            } else {
+                alert('Please click on the map to choose a location.');
+            }
+        }
+
+        // Close add marker popup
+        function closeAddMarkerPopup() {
+            document.getElementById('addMarkerPopup').classList.remove('open');
+        }
+
+        // Save marker
+        function saveMarker() {
+            var name = document.getElementById('addLocationName').value;
+            var lat = document.getElementById('addLatitude').value;
+            var lng = document.getElementById('addLongitude').value;
+
+            if (name && lat && lng) {
+                fetch('post.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'name=' + encodeURIComponent(name) + '&latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lng)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('Location saved successfully!');
+                            loadMarkers();
+                            closeAddMarkerPopup();
+                        } else {
+                            alert('Error saving location: ' + data.message);
+                        }
+                    });
+            } else {
+                alert('Please fill in all fields.');
+            }
+        }
+
+        // Fetch and load markers from database
+        function loadMarkers() {
+            fetch('get_markers.php')
+                .then(response => response.json())
+                .then(data => {
+                    // Clear existing markers
+                    map.eachLayer(function (layer) {
+                        if (layer instanceof L.Marker) {
+                            map.removeLayer(layer);
+                        }
+                    });
+
+                    // Add markers to the map
+                    data.forEach(function (location) {
+                        var marker = L.marker([location.latitude, location.longitude]).addTo(map);
+                        marker.bindTooltip(location.name, { permanent: true, direction: 'top' }).openTooltip();
+                        var popupContent = '<b>' + location.name + '</b><br>' +
+                            'Latitude: ' + location.latitude + '<br>' +
+                            'Longitude: ' + location.longitude + '<br>' +
+                            '<button onclick="editMarker(' + location.id + ', \'' + location.name + '\')">Edit</button>' +
+                            '<button onclick="deleteMarker(' + location.id + ')">Delete</button>';
+                        marker.bindPopup(popupContent);
+                    });
+                });
+        }
+
+        // Show history popup with list of saved markers
+        function showHistoryPopup() {
+            fetch('get_markers.php')
+                .then(response => response.json())
+                .then(data => {
+                    var historyList = document.getElementById('historyList');
+                    historyList.innerHTML = '';
+                    data.forEach(function (location) {
+                        var listItem = document.createElement('li');
+                        listItem.textContent = location.name;
+                        listItem.onclick = function () {
+                            // Pindahkan peta ke marker yang dipilih
+                            map.setView([location.latitude, location.longitude], 15); // Ubah zoom level sesuai kebutuhan
+                        };
+                        historyList.appendChild(listItem);
+                    });
+                    document.getElementById('historyPopup').classList.add('open');
+                });
+        }
+
+        // Function to delete a marker
+        function deleteMarker(markerId) {
+            if (confirm('Are you sure you want to delete this marker?')) {
+                fetch('delete_marker.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({ id: markerId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('Marker deleted successfully!');
+                            loadMarkers();
+                        } else {
+                            alert('Error deleting marker: ' + data.message);
+                        }
+                    });
+            }
+        }
+
+        // Function to edit a marker
+        function editMarker(markerId, currentName) {
+            var newName = prompt('Edit Location Name:', currentName);
+            if (newName) {
+                fetch('edit_marker.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({ id: markerId, name: newName })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('Marker updated successfully!');
+                            loadMarkers();
+                        } else {
+                            alert('Error updating marker: ' + data.message);
+                        }
+                    });
+            }
+        }
+
+        // Close history popup
+        function closeHistoryPopup() {
+            document.getElementById('historyPopup').classList.remove('open');
+        }
+
+        // Load markers on page load
+        loadMarkers();
+    </script>
+</body>
+
+</html>
