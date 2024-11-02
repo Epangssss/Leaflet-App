@@ -1,0 +1,131 @@
+
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+        
+        .icon-btn {
+            position: absolute;
+            top: 10px;
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        #addMarkerIcon {
+            right: 150px;
+        }
+
+        #historyIcon {
+            right: 90px;
+        }
+
+        #searchContainer {
+            position: fixed;
+            top: 15px;
+            left: 72%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            z-index: 1000;
+            width: 20vw;
+        }
+
+        #searchContainer input {
+            margin-right: 5px;
+            padding: 5px;
+            font-size: 1.2vw;
+            width: 15vw;
+            box-sizing: border-box;
+        }
+
+        #searchContainer button {
+            padding: 5px 10px;
+            font-size: 1.2vw;
+            cursor: pointer;
+        }
+
+        .popup-container {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            width: 300px;
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 2000;
+        }
+
+        .popup-container.open {
+            display: block;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .popup-header button {
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .popup-footer {
+            text-align: right;
+        }
+
+        .popup-footer button {
+            margin: 5px;
+        }
+
+        .popup-container input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+
+   .historyPopup ul {
+    list-style: none;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.historyPopup li {
+    margin-bottom: 10px;
+    text-decoration: underline;
+    cursor: pointer;
+    color: blue;
+}
+
+.historyPopup button {
+    background-color: grey;
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.history-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.history-navigation button {
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+    

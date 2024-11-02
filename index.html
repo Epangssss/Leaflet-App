@@ -6,130 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaflet Map with Popup and Delete</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
 
-    //CSS 
-    <style>
-        #map {
-            height: 500px;
-            width: 100%;
-        }
-
-        .icon-btn {
-            position: absolute;
-            top: 10px;
-            background-color: white;
-            border-radius: 50%;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-
-        #addMarkerIcon {
-            right: 150px;
-        }
-
-        #historyIcon {
-            right: 90px;
-        }
-
-        #searchContainer {
-            position: fixed;
-            top: 15px;
-            left: 72%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            z-index: 1000;
-            width: 20vw;
-        }
-
-        #searchContainer input {
-            margin-right: 5px;
-            padding: 5px;
-            font-size: 1.2vw;
-            width: 15vw;
-            box-sizing: border-box;
-        }
-
-        #searchContainer button {
-            padding: 5px 10px;
-            font-size: 1.2vw;
-            cursor: pointer;
-        }
-
-        .popup-container {
-            position: fixed;
-            top: 50px;
-            right: 10px;
-            width: 300px;
-            background-color: white;
-            padding: 20px;
-            border: 1px solid #ccc;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            display: none;
-            z-index: 2000;
-        }
-
-        .popup-container.open {
-            display: block;
-        }
-
-        .popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .popup-header button {
-            background-color: red;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .popup-footer {
-            text-align: right;
-        }
-
-        .popup-footer button {
-            margin: 5px;
-        }
-
-        .popup-container input {
-            width: 100%;
-            margin-bottom: 10px;
-            padding: 5px;
-        }
-
-        .historyPopup ul {
-            list-style: none;
-            padding: 0;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .historyPopup li {
-            margin-bottom: 10px;
-            text-decoration: underline;
-            cursor: pointer;
-            color: blue;
-        }
-
-        .historyPopup button {
-            background-color: red;
-            color: white;
-            border: none;
-            padding: 5px;
-            cursor: pointer;
-        }
-    </style>
 </head>
 
-
-//HTML
 <body>
     <h1>Leaflet Map untuk SIG</h1>
     <div id="map"></div>
@@ -148,6 +28,7 @@
             <h3 id="popupTitle">Add Marker</h3>
             <button onclick="closeAddMarkerPopup()">✖</button>
         </div>
+        
         <form id="markerForm" action="save_marker.php" method="POST" enctype="multipart/form-data">
             <input type="text" name="name" id="addLocationName" placeholder="Location Name" required />
             <input type="text" name="latitude" id="addLatitude" placeholder="Latitude" readonly />
@@ -159,234 +40,28 @@
                 <button type="button" onclick="closeAddMarkerPopup()">Cancel</button>
             </div>
         </form>
+    </div>  
+
+  <!-- Popup for history markers -->
+<div id="historyPopup" class="popup-container historyPopup">
+    <div class="popup-header">
+        <h3>History</h3>
+        <button onclick="closeHistoryPopup()">✖</button>
     </div>
-
-    <!-- Popup for history markers -->
-    <div id="historyPopup" class="popup-container historyPopup">
-        <div class="popup-header">
-            <h3>History</h3>
-            <button onclick="closeHistoryPopup()">✖</button>
-        </div>
-        <ul id="historyList"></ul>
+    <ul id="historyList"></ul>
+    <!-- Navigasi untuk slide -->
+    <div class="history-navigation">
+        <button onclick="previousSlide()" id="prevButton" disabled>Previous</button>
+        <button onclick="nextSlide()" id="nextButton">Next</button>
     </div>
+</div>
 
 
-//Java script
+
     <!-- Include Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="script.js"></script>
 
-    <script>
-        // Initialize the map with default coordinates
-        var map = L.map('map').setView([-8.1665, 113.6926], 13);
-
-        // Load tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-        }).addTo(map);
-
-        var marker;
-
-        // Event listener for map click to add marker
-        map.on('click', function (e) {
-            if (marker) {
-                marker.setLatLng(e.latlng);
-            } else {
-                marker = L.marker(e.latlng).addTo(map);
-            }
-
-            document.getElementById('addLatitude').value = e.latlng.lat;
-            document.getElementById('addLongitude').value = e.latlng.lng;
-        });
-
-        document.getElementById('markerForm').addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent default form submission
-
-            var formData = new FormData(this);
-
-            fetch('save_marker.php', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert(data.message); // Show success message
-                        closeAddMarkerPopup(); // Close the popup after confirmation
-                        loadMarkers(); // Reload markers to reflect the new addition
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        });
-
-        function showAddMarkerPopup() {
-            if (marker) {
-                document.getElementById('popupTitle').innerText = "Add Marker";
-                document.getElementById('addLocationName').value = '';
-                document.getElementById('addLatitude').value = marker.getLatLng().lat;
-                document.getElementById('addLongitude').value = marker.getLatLng().lng;
-                document.getElementById('markerId').value = ''; // Clear hidden marker ID
-                document.getElementById('addMarkerPopup').classList.add('open');
-            } else {
-                alert('Please click on the map to choose a location.');
-            }
-        }
-
-        function closeAddMarkerPopup() {
-            document.getElementById('addMarkerPopup').classList.remove('open');
-        }
-
-        function closeHistoryPopup() {
-            document.getElementById('historyPopup').classList.remove('open');
-        }
-
-      function loadMarkers() {
-            fetch('get_markers.php')
-                .then(response => response.json())
-                .then(data => {
-                    // Remove existing markers from the map
-                    map.eachLayer(function (layer) {
-                        if (layer instanceof L.Marker) {
-                            map.removeLayer(layer);
-                        }
-                    });
-
-                    // Iterate through each location in the fetched data
-                    data.forEach(function (location) {
-                        var marker = L.marker([location.latitude, location.longitude]).addTo(map);
-                        marker.bindTooltip(location.name, { permanent: true, direction: 'top' }).openTooltip();
-
-                        // Add image to the popup content
-                        var popupContent = '<b>' + location.name + '</b><br>' +
-                            'Latitude: ' + location.latitude + '<br>' +
-                            'Longitude: ' + location.longitude + '<br>' +
-                            '<img src="' + location.image_url + '" alt="' + location.name + '" style="width: 100%; height: auto;" />' +
-                            '<br><button onclick="editMarker(' + location.id + ')">Edit</button>' +
-                            '<button onclick="deleteMarker(' + location.id + ')">Delete</button>';
-
-                        // Bind the popup to the marker
-                        marker.bindPopup(popupContent);
-                    });
-                });
-        }
-
-
-        function showHistoryPopup() {
-            fetch('get_markers.php')
-                .then(response => response.json())
-                .then(data => {
-                    let historyList = document.getElementById('historyList');
-                    historyList.innerHTML = ''; // Clear previous history
-
-                    data.forEach(function (location) {
-                        var listItem = document.createElement('li');
-                        listItem.textContent = location.name;
-                        listItem.onclick = function () {
-                            map.setView([location.latitude, location.longitude], 15); // Zoom to the marker
-                        };
-
-                        historyList.appendChild(listItem);
-                    });
-
-                    document.getElementById('historyPopup').classList.add('open');
-                });
-        }
-
-        function searchLocation() {
-            var location = document.getElementById('searchLocation').value;
-
-            if (!location) {
-                alert('Please enter a location to search');
-                return;
-            }
-
-            fetch(`https://nominatim.openstreetmap.org/search?q=${location}&format=json&addressdetails=1&limit=5`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length === 0) {
-                        alert('No results found.');
-                    } else {
-                        // Display results in console or handle them as needed
-                        data.forEach(result => {
-                            console.log(result);
-                        });
-                        map.setView([data[0].lat, data[0].lon], 15);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-    function editMarker(id) {
-        fetch(`get_markers.php?id=${id}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    const newName = prompt("Edit Marker Name:", data.name); // Meminta input dari pengguna
-                    if (newName !== null) { // Memeriksa apakah pengguna menekan Cancel
-                        saveMarker(id, newName); // Memanggil fungsi untuk menyimpan marker
-                    }
-                } else {
-                    alert('Error fetching marker data.');
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    }
-
-    function saveMarker(id, name) {
-        fetch('edit_marker.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                'markerId': id,
-                'name': name
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message); // Menampilkan pesan hasil
-                if (data.status === 'success') {
-                    loadMarkers(); // Reload markers after editing
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    }
-
-
-
-
-
- function deleteMarker(id) {
-        if (confirm('Are you sure you want to delete this marker?')) {
-            fetch('delete_marker.php', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    'id': id
-                })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message); // Menampilkan pesan
-                    if (data.status === 'success') {
-                        loadMarkers(); // Reload markers after deletion
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-    }
-
-
-
-
-
-        // Load markers when the page loads
-        loadMarkers();
-    </script>
 
 </body>
 
