@@ -1,25 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Marker</title>
-</head>
-<body>
-    <h1>Add Marker</h1>
-    <form action="save_marker.php" method="POST" enctype="multipart/form-data">
-        <label for="name">Name:</label>
-        <input type="text" name="name" required><br>
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "leaflet";
 
-        <label for="latitude">Latitude:</label>
-        <input type="text" name="latitude" required><br>
+// Buat koneksi
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-        <label for="longitude">Longitude:</label>
-        <input type="text" name="longitude" required><br>
+if ($conn->connect_error) {
+    die(json_encode(['status' => 'error', 'message' => 'Connection failed: ' . $conn->connect_error]));
+}
 
-        <label for="image">Upload Image:</label>
-        <input type="file" name="image" accept="image/*" required><br>
+$name = $_POST['name'];
+$latitude = $_POST['latitude'];
+$longitude = $_POST['longitude'];
+$deskripsi = $_POST['deskripsi'] ?? ''; // Menggunakan deskripsi jika ada, kosong jika tidak
 
-        <button type="submit">Add Marker</button>
-    </form>
-</body>
-</html>
+// Cek apakah file diunggah
+if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+    $fileTmpPath = $_FILES['image']['tmp_name'];
+    $fileName = $_FILES['image']['name'];
+    $fileNameCmps = explode(".", $fileName);
+    $fileExtension = strtolower(end($fileNameCmps));
+    $allowedfileExtensions = ['jpg', 'gif', 'png', 'jpeg'];
+
+    if (in_array($fileExtension, $allowedfileExtensions)) {
+        $uploadFileDir = 'uploads/';
+        $dest_path = $uploadFileDir . $fileName;
+
+        if (move_uploaded_file($fileTmpPath, $dest_path)) {
+            // Simpan detail marker ke dalam database
+            $stmt = $conn->prepare("INSERT INTO locations (name, latitude, longitude, image_url, deskripsi) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssss", $name, $latitude, $longitude, $dest_path, $deskripsi);
+            if ($stmt->execute()) {
+                echo json_encode(['status' => 'success', 'message' => 'Marker berhasil disimpan.']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Database insert failed.']);
+            }
+            $stmt->close();
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Error moving the uploaded file.']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid file type. Only JPG, GIF, PNG, and JPEG are allowed.']);
+    }
+} else {
+    // Jika tidak ada gambar yang diunggah, simpan data tanpa `image_url`
+    $stmt = $conn->prepare("INSERT INTO locations (name, latitude, longitude, deskripsi) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("ssss", $name, $latitude, $longitude, $deskripsi);
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success', 'message' => 'Marker berhasil disimpan tanpa gambar.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Database insert failed.']);
+    }
+    $stmt->close();
+}
+
+$conn->close();

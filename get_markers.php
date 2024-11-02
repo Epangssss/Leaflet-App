@@ -10,7 +10,8 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT id, name, latitude, longitude, image_url FROM locations";
+// Mengambil semua data marker termasuk deskripsi
+$sql = "SELECT id, name, latitude, longitude, image_url, deskripsi FROM locations";
 $result = $conn->query($sql);
 
 $markers = array();
@@ -18,6 +19,7 @@ while ($row = $result->fetch_assoc()) {
     $markers[] = $row;
 }
 
+// Mengatur header untuk JSON
 header('Content-Type: application/json');
 echo json_encode($markers);
 

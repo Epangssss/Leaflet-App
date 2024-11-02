@@ -19,75 +19,72 @@
             document.getElementById('addLongitude').value = e.latlng.lng;
         });
 
-        document.getElementById('markerForm').addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent default form submission
+    document.getElementById('markerForm').addEventListener('submit', function (event) {
+    event.preventDefault();
 
-            var formData = new FormData(this);
+    var formData = new FormData(this);
+    formData.append('deskripsi', document.getElementById('addDeskripsi').value);
 
-            fetch('save_marker.php', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert(data.message); // Show success message
-                        closeAddMarkerPopup(); // Close the popup after confirmation
-                        loadMarkers(); // Reload markers to reflect the new addition
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        });
+    fetch('save_marker.php', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                closeAddMarkerPopup();
+                loadMarkers();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+});
 
-            function showAddMarkerPopup() {
-                    
-                if (marker) {
-                    document.getElementById('popupTitle').innerText = "Add Marker";
-                    document.getElementById('addLocationName').value = '';
-                    document.getElementById('addLatitude').value = marker.getLatLng().lat;
-                    document.getElementById('addLongitude').value = marker.getLatLng().lng;
-                    document.getElementById('markerId').value = ''; // Clear hidden marker ID
-                    document.getElementById('addMarkerPopup').classList.add('open');
 
-                     
-                } else {
-                    alert('Please click on the map to choose a location.');
+      function showAddMarkerPopup() {
+    if (marker) {
+        document.getElementById('popupTitle').innerText = "Add Marker";
+        document.getElementById('addLocationName').value = '';
+        document.getElementById('addDeskripsi').value = ''; // Clear description input
+        document.getElementById('addLatitude').value = marker.getLatLng().lat;
+        document.getElementById('addLongitude').value = marker.getLatLng().lng;
+        document.getElementById('markerId').value = '';
+        document.getElementById('addMarkerPopup').classList.add('open');
+    } else {
+        alert('Please click on the map to choose a location.');
+    }
+}
+
+
+function loadMarkers() {
+    fetch('get_markers.php')
+        .then(response => response.json())
+        .then(data => {
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
                 }
-                
-            }
+            });
 
+            data.forEach(function (location) {
+                var marker = L.marker([location.latitude, location.longitude]).addTo(map);
+                marker.bindTooltip(location.name, { permanent: true, direction: 'top' }).openTooltip();
 
-        function loadMarkers() {
-                fetch('get_markers.php')
-                    .then(response => response.json())
-                    .then(data => {
-                        // Remove existing markers from the map
-                        map.eachLayer(function (layer) {
-                            if (layer instanceof L.Marker) {
-                                map.removeLayer(layer);
-                            }
-                        });
+                var popupContent = '<b>' + location.name + '</b><br>' +
+                    (location.deskripsi ? '<p>' + location.deskripsi + '</p>' : '') + // Show description if available
+                    'Latitude: ' + location.latitude + '<br>' +
+                    'Longitude: ' + location.longitude + '<br>' +
+                    (location.image_url ? '<img src="' + location.image_url + '" alt="' + location.name + '" style="width: 100%; height: auto;" />' : '') +
+                    '<br><button onclick="editMarker(' + location.id + ')">Edit</button>' +
+                    '<button onclick="deleteMarker(' + location.id + ')">Delete</button>';
 
-                        // Iterate through each location in the fetched data
-                        data.forEach(function (location) {
-                            var marker = L.marker([location.latitude, location.longitude]).addTo(map);
-                            marker.bindTooltip(location.name, { permanent: true, direction: 'top' }).openTooltip();
+                marker.bindPopup(popupContent);
+            });
+        });
+}
 
-                            // Add image to the popup content
-                            var popupContent = '<b>' + location.name + '</b><br>' +
-                                'Latitude: ' + location.latitude + '<br>' +
-                                'Longitude: ' + location.longitude + '<br>' +
-                                '<img src="' + location.image_url + '" alt="' + location.name + '" style="width: 100%; height: auto;" />' +
-                                '<br><button onclick="editMarker(' + location.id + ')">Edit</button>' +
-                                '<button onclick="deleteMarker(' + location.id + ')">Delete</button>';
-
-                            // Bind the popup to the marker
-                            marker.bindPopup(popupContent);
-                        });
-                    });
-            }
 
 
     let currentSlide = 0;
@@ -131,35 +128,62 @@ function handleOutsideClick(event) {
     }
 }
             
+// Load markers from database
 function loadMarkers() {
     fetch('get_markers.php')
         .then(response => response.json())
         .then(data => {
-            console.log("Markers data for map:", data); // Log data untuk debugging
-            // Remove existing markers from the map
+            console.log("Markers data:", data);
+
+            // Remove existing markers
             map.eachLayer(function (layer) {
                 if (layer instanceof L.Marker) {
                     map.removeLayer(layer);
                 }
             });
 
-            // Iterate through each location in the fetched data
+            // Add new markers
             data.forEach(function (location) {
                 var marker = L.marker([location.latitude, location.longitude]).addTo(map);
-                marker.bindTooltip(location.name, { permanent: true, direction: 'top' }).openTooltip();
 
-                // Add image to the popup content
-                var popupContent = '<b>' + location.name + '</b><br>' +
-                    'Latitude: ' + location.latitude + '<br>' +
-                    'Longitude: ' + location.longitude + '<br>' +
-                    '<img src="' + location.image_url + '" alt="' + location.name + '" style="width: 100%; height: auto;" />' +
-                    '<br><button onclick="editMarker(' + location.id + ')">Edit</button>' +
-                    '<button onclick="deleteMarker(' + location.id + ')">Delete</button>';
+                // Create tooltip with location name
+                marker.bindTooltip(location.name, { 
+                    permanent: true, 
+                    direction: 'top' 
+                }).openTooltip();
+                
 
-                // Bind the popup to the marker
+                // Create popup content with all information
+                var popupContent = `
+                    <div style="text-align: left; min-width: 200px;">
+                        <h3 style="margin: 0 0 10px 0;">${location.name}</h3>
+                        <div style="margin-bottom: 10px;">
+                            <strong>Description:</strong><br>
+                            <p style="margin: 5px 0;">${location.deskripsi || 'No description available'}</p>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <strong>Coordinates:</strong><br>
+                            Lat: ${location.latitude}<br>
+                            Lng: ${location.longitude}
+                        </div>
+                        ${location.image_url ? `
+                            <div style="margin-bottom: 10px;">
+                                <img src="${location.image_url}" alt="Location image" 
+                                     style="width: 100%; height: auto; border-radius: 4px;" />
+                            </div>
+                        ` : ''}
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button onclick="editMarker(${location.id})" 
+                                    style="flex: 1; padding: 5px;">Edit</button>
+                            <button onclick="deleteMarker(${location.id})" 
+                                    style="flex: 1; padding: 5px;">Delete</button>
+                        </div>
+                    </div>
+                `;
                 marker.bindPopup(popupContent);
             });
-        });
+        })
+        .catch(error => console.error('Error loading markers:', error));
 }
 
 
@@ -230,21 +254,47 @@ function previousSlide() {
                 .catch(error => console.error('Error:', error));
         }
 
-    function editMarker(id) {
-        fetch(`get_markers.php?id=${id}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    const newName = prompt("Edit Marker Name:", data.name); // Meminta input dari pengguna
-                    if (newName !== null) { // Memeriksa apakah pengguna menekan Cancel
-                        saveMarker(id, newName); // Memanggil fungsi untuk menyimpan marker
-                    }
-                } else {
-                    alert('Error fetching marker data.');
+function editMarker(id) {
+    fetch(`get_markers.php?id=${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data) {
+                const newName = prompt("Edit Marker Name:", data.name);
+                const newDescription = prompt("Edit Marker Description:", data.deskripsi || ""); // Tambahkan prompt untuk deskripsi
+                if (newName !== null && newDescription !== null) {
+                    saveMarker(id, newName, newDescription);
                 }
-            })
-            .catch(error => console.error('Error:', error));
-    }
+            } else {
+                alert('Error fetching marker data.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+
+function saveMarker(id, name, description) {
+    fetch('edit_marker.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            'markerId': id,
+            'name': name,
+            'description': description // Kirim deskripsi baru
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message); // Menampilkan pesan hasil
+        if (data.status === 'success') {
+            loadMarkers(); // Reload markers setelah diedit
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+
 
     function saveMarker(id, name) {
         fetch('edit_marker.php', {
@@ -292,6 +342,106 @@ function previousSlide() {
                 .catch(error => console.error('Error:', error));
         }
     }
+
+    // Function to update the marker table
+function updateMarkerTable() {
+    fetch('get_markers.php')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.querySelector('#markerTable tbody');
+            tableBody.innerHTML = '';
+
+            data.forEach(marker => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${marker.name}</td>
+                    <td>${marker.latitude}</td>
+                    <td>${marker.longitude}</td>
+                    <td>${marker.deskripsi || 'No description'}</td>
+                    <td>
+                        <button onclick="editMarkerFromTable(${marker.id})" class="edit-btn">Edit</button>
+                        <button onclick="deleteMarkerFromTable(${marker.id})" class="delete-btn">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(error => console.error('Error loading marker table:', error));
+}
+
+// Function to edit marker from table
+function editMarkerFromTable(id) {
+    fetch(`get_markers.php?id=${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data) {
+                document.getElementById('popupTitle').innerText = "Edit Marker";
+                document.getElementById('addLocationName').value = data.name;
+                document.getElementById('addDeskripsi').value = data.deskripsi || '';
+                document.getElementById('addLatitude').value = data.latitude;
+                document.getElementById('addLongitude').value = data.longitude;
+                document.getElementById('markerId').value = data.id;
+                document.getElementById('addMarkerPopup').classList.add('open');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Function to delete marker from table
+function deleteMarkerFromTable(id) {
+    if (confirm('Are you sure you want to delete this marker?')) {
+        fetch('delete_marker.php', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                'id': id
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                updateMarkerTable();
+                loadMarkers();
+            }
+            alert(data.message);
+        })
+        .catch(error => console.error('Error:', error));
+    }
+}
+
+// Modify your existing loadMarkers function to also update the table
+const originalLoadMarkers = loadMarkers;
+loadMarkers = function() {
+    originalLoadMarkers();
+    updateMarkerTable();
+};
+
+// Update form submission to refresh table
+document.getElementById('markerForm').addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    var formData = new FormData(this);
+    formData.append('deskripsi', document.getElementById('addDeskripsi').value);
+
+    fetch('save_marker.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert(data.message);
+            closeAddMarkerPopup();
+            loadMarkers();
+            updateMarkerTable();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
 
 
 
