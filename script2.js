@@ -1,5 +1,3 @@
-localStorage.removeItem("bookmarks");
-
 var map = L.map('map').setView([-8.1665, 113.6926], 13);
 
         // Load tile layer
@@ -61,17 +59,21 @@ var map = L.map('map').setView([-8.1665, 113.6926], 13);
 
 let bookmarks = JSON.parse(localStorage.getItem("bookmarks")) || [];
 
+// Function to toggle the bookmark sidebar display
 function toggleBookmarkSidebar() {
     const sidebar = document.getElementById("bookmarkSidebar");
     sidebar.style.display = sidebar.style.display === "block" ? "none" : "block";
-    renderBookmarkList(); 
+    renderBookmarkList();
 }
 
+// Function to close the bookmark sidebar
 function closeBookmarkSidebar() {
     document.getElementById("bookmarkSidebar").style.display = "none";
 }
 
+// Function to add a new bookmark without duplicates
 function addBookmark(name, latitude, longitude) {
+    // Check if the bookmark already exists
     const exists = bookmarks.some(bookmark => 
         bookmark.name === name && bookmark.latitude === latitude && bookmark.longitude === longitude
     );
@@ -83,6 +85,7 @@ function addBookmark(name, latitude, longitude) {
     }
 }
 
+// Function to render the bookmark list in the sidebar
 function renderBookmarkList() {
     const list = document.getElementById("bookmarkList");
     list.innerHTML = ""; 
@@ -95,24 +98,14 @@ function renderBookmarkList() {
     });
 }
 
+// Function to navigate to a bookmark location on the map
 function goToBookmark(latitude, longitude) {
     map.setView([latitude, longitude], 15); 
 }
 
-function fetchMarkers() {
-    fetch("get_markers.php")
-        .then(response => response.json())
-        .then(data => {
-            data.forEach(marker => {
-                addBookmark(marker.name, marker.latitude, marker.longitude);
-            });
-        })
-        .catch(error => console.error("Error fetching markers:", error));
-}
-
-if (bookmarks.length === 0) {
-    fetchMarkers();
-}
+// Add initial bookmarks if they don't already exist
+addBookmark("Pantai Papuma", -8.44210000, 113.77630000);
+addBookmark("Pantai Teluk Love", -8.42430000, 113.78120000);
 
 
 

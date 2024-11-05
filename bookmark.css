@@ -1,0 +1,76 @@
+/* Style untuk Sidebar Bookmark */
+#bookmarkSidebar {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    background-color: #f8f9fa;
+    box-shadow: -3px 0 8px rgba(0, 0, 0, 0.2);
+    display: none;
+    z-index: 1000;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+#bookmarkSidebar h2 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* List Bookmark */
+#bookmarkList {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#bookmarkList li {
+    background: #ffffff;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 12px 15px;
+    font-size: 16px;
+    color: #444;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#bookmarkList li:hover {
+    background-color: #007bff;
+    color: #ffffff;
+    box-shadow: 0px 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+/* Ikon Bookmark */
+#bookmarkList li::before {
+    content: '📍';
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+/* Tombol Close Sidebar */
+#bookmarkSidebar button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #ff4d4f;
+    color: #ffffff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+#bookmarkSidebar button:hover {
+    background-color: #ff2d2f;
+}
+
+
