@@ -8,6 +8,7 @@ $dbname = "leaflet"; // Sesuaikan dengan nama database Anda
 // Membuat koneksi
 $conn = new mysqli($servername, $username, $password, $dbname);
 
+// Cek koneksi
 if ($conn->connect_error) {
     die(json_encode(["status" => "error", "message" => "Connection failed: " . $conn->connect_error]));
 }
@@ -32,9 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fileExtension = strtolower(end($fileNameCmps));
             $allowedfileExtensions = ['jpg', 'gif', 'png', 'jpeg'];
 
+            // Memeriksa apakah file yang diunggah memiliki ekstensi yang diperbolehkan
             if (in_array($fileExtension, $allowedfileExtensions)) {
+                // Menghasilkan nama file unik untuk menghindari konflik nama
+                $newFileName = uniqid() . '.' . $fileExtension;
                 $uploadFileDir = 'uploads/';
-                $dest_path = $uploadFileDir . $fileName;
+                $dest_path = $uploadFileDir . $newFileName;
 
                 // Pindahkan file yang diunggah ke folder tujuan
                 if (move_uploaded_file($fileTmpPath, $dest_path)) {
@@ -51,9 +55,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Query untuk memperbarui marker dengan deskripsi dan gambar (jika ada gambar baru)
         if ($image_url) {
+            // Jika ada gambar baru, update kolom image_url
             $stmt = $conn->prepare("UPDATE locations SET name = ?, deskripsi = ?, image_url = ? WHERE id = ?");
             $stmt->bind_param("sssi", $name, $description, $image_url, $id);
         } else {
+            // Jika tidak ada gambar baru, hanya update name dan deskripsi
             $stmt = $conn->prepare("UPDATE locations SET name = ?, deskripsi = ? WHERE id = ?");
             $stmt->bind_param("ssi", $name, $description, $id);
         }

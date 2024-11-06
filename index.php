@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,20 +8,23 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="bookmark.css">
-   
+
 </head>
+
 <body>
-    <center><h1>Leaflet Map untuk SIG</h1></center>
+    <center>
+        <h1>Leaflet Map untuk SIG</h1>
+    </center>
     <div id="map"></div>
     <div id="addMarkerIcon" class="icon-btn" onclick="showAddMarkerPopup()">➕</div>
     <div id="historyIcon" class="icon-btn" onclick="showHistoryPopup()">🗒️</div>
-    
+
     <!-- Search Input -->
     <div id="searchContainer">
         <input type="text" id="searchLocation" placeholder="Search Location" />
         <button onclick="searchLocation()">Search</button>
     </div>
-    
+
     <!-- Popup for adding marker -->
     <div id="addMarkerPopup" class="popup-container">
         <div class="popup-header">
@@ -41,6 +45,27 @@
         </form>
     </div>
 
+    <!-- Popup for editing marker -->
+    <div id="editMarkerPopup" class="popup-container">
+        <div class="popup-header">
+            <h3 id="popupTitle">Edit Marker</h3>
+            <button onclick="closeEditMarkerPopup()">✖</button>
+        </div>
+        <form id="markerForm" action="edit_marker.php" method="POST" enctype="multipart/form-data">
+            <input type="text" name="name" id="editLocationName" placeholder="Location Name" required />
+            <textarea name="deskripsi" id="editDeskripsi" placeholder="Deskripsi Lokasi"></textarea>
+            <input type="text" name="latitude" id="editLatitude" placeholder="Latitude" />
+            <input type="text" name="longitude" id="editLongitude" placeholder="Longitude" />
+            <input type="file" name="image" id="editImage" accept="image/*" />
+            <input type="hidden" name="markerId" id="markerId" />
+            <div class="popup-footer">
+                <button type="button" id="saveChangesButton" onclick="saveMarkerChanges()">Save Changes</button>
+                <button type="button" onclick="closeEditMarkerPopup()">Cancel</button>
+            </div>
+        </form>
+
+    </div>
+
     <!-- Popup for history markers -->
     <div id="historyPopup" class="popup-container historyPopup">
         <div class="popup-header">
@@ -57,12 +82,12 @@
 
     <!-- Tombol untuk menampilkan sidebar bookmark -->
     <div id="bookmarkIcon" class="icon-btn" onclick="toggleBookmarkSidebar()">📌</div>
-<!-- Sidebar untuk daftar bookmark -->
-<div id="bookmarkSidebar" class="sidebar">
-    <h2>Bookmarks</h2>
-    <ul id="bookmarkList"></ul>
-    <button onclick="closeBookmarkSidebar()">Close</button>
-</div>
+    <!-- Sidebar untuk daftar bookmark -->
+    <div id="bookmarkSidebar" class="sidebar">
+        <h2>Bookmarks</h2>
+        <ul id="bookmarkList"></ul>
+        <button onclick="closeBookmarkSidebar()">Close</button>
+    </div>
 
 
     <!-- Table for displaying marker data -->
@@ -71,20 +96,30 @@
         <table id="markerTable">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>ID</th>
+                    <th>Nama</th>
                     <th>Latitude</th>
                     <th>Longitude</th>
-                    <th>Description</th>
-                    <th>Actions</th>
+                    <th>Deskripsi</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
+
+        <!-- Pagination controls -->
+        <div id="paginationControls">
+            <button id="prevButton" onclick="changePage('prev')">Previous</button>
+            <button id="nextButton" onclick="changePage('next')">Next</button>
+        </div>
     </div>
+
+
 
     <!-- Include Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="script.js"></script>
 
 </body>
+
 </html>

@@ -232,12 +232,6 @@ function loadMarkers() {
                                      style="width: 100%; height: auto; border-radius: 4px;" />
                             </div>
                         ` : ''}
-                        <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <button onclick="editMarker(${location.id})" 
-                                    style="flex: 1; padding: 5px;">Edit</button>
-                            <button onclick="deleteMarker(${location.id})" 
-                                    style="flex: 1; padding: 5px;">Delete</button>
-                        </div>
                     </div>
                 `;
                 marker.bindPopup(popupContent);
@@ -314,109 +308,76 @@ function previousSlide() {
                 .catch(error => console.error('Error:', error));
         }
 
-function editMarker(id) {
-    fetch(`get_markers.php?id=${id}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data) {
-                const newName = prompt("Edit Marker Name:", data.name);
-                const newDescription = prompt("Edit Marker Description:", data.deskripsi || ""); // Tambahkan prompt untuk deskripsi
-                if (newName !== null && newDescription !== null) {
-                    saveMarker(id, newName, newDescription);
-                }
-            } else {
-                alert('Error fetching marker data.');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-}
 
 
-function saveMarker(id, name, description) {
+
+
+// Fungsi untuk menyimpan perubahan marker
+function saveMarkerChanges() {
+    const id = document.getElementById('markerId').value;  // Ambil ID marker dari hidden input
+    const name = document.getElementById('editLocationName').value;
+    const latitude = document.getElementById('editLatitude').value;
+    const longitude = document.getElementById('editLongitude').value;
+    const deskripsi = document.getElementById('editDeskripsi').value;
+
+    // Validasi input sebelum dikirim
+    if (!name || !latitude || !longitude || !deskripsi) {
+        alert('All fields are required!');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('markerId', id);
+    formData.append('name', name);
+    formData.append('latitude', latitude);
+    formData.append('longitude', longitude);
+    formData.append('description', deskripsi); // Menggunakan 'description' sesuai dengan PHP
+
+    // Jika ada gambar baru
+    const imageInput = document.getElementById('editImage');
+    if (imageInput.files.length > 0) {
+        formData.append('image', imageInput.files[0]);
+    }
+
+    // Mengirimkan data menggunakan Fetch API
     fetch('edit_marker.php', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-            'markerId': id,
-            'name': name,
-            'description': description // Kirim deskripsi baru
-        })
+        body: formData
     })
     .then(response => response.json())
     .then(data => {
-        alert(data.message); // Menampilkan pesan hasil
         if (data.status === 'success') {
-            loadMarkers(); // Reload markers setelah diedit
+            alert(data.message);
+            updateMarkerTable();  // Update tabel setelah data berhasil disimpan
+            closeEditMarkerPopup();  // Menutup popup setelah edit
+        } else {
+            alert(data.message);
         }
-    })
+    })  
     .catch(error => console.error('Error:', error));
 }
 
 
 
-    function saveMarker(id, name) {
-        fetch('edit_marker.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                'markerId': id,
-                'name': name
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message); // Menampilkan pesan hasil
-                if (data.status === 'success') {
-                    loadMarkers(); // Reload markers after editing
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    }
 
-
-
-
-
- function deleteMarker(id) {
-        if (confirm('Are you sure you want to delete this marker?')) {
-            fetch('delete_marker.php', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    'id': id
-                })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message); // Menampilkan pesan
-                    if (data.status === 'success') {
-                        loadMarkers(); // Reload markers after deletion
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
-    }
-
-    // Function to update the marker table
+// Function to update the marker table
 function updateMarkerTable() {
     fetch('get_markers.php')
         .then(response => response.json())
         .then(data => {
             const tableBody = document.querySelector('#markerTable tbody');
-            tableBody.innerHTML = '';
+            tableBody.innerHTML = ''; // Clear existing rows
 
-            data.forEach(marker => {
+            // Reassign IDs sequentially for display purposes only
+            data.forEach((marker, index) => {
                 const row = document.createElement('tr');
+                row.setAttribute('data-original-id', marker.id);
+
                 row.innerHTML = `
-                    <td>${marker.name}</td>
-                    <td>${marker.latitude}</td>
-                    <td>${marker.longitude}</td>
+                    <td>${index + 1}</td>
+                    <td class="clickable" onclick="focusMarkerOnMap(${marker.latitude}, ${marker.longitude})">${marker.name}</td>
+                    <td class="clickable" onclick="focusMarkerOnMap(${marker.latitude}, ${marker.longitude})">${marker.latitude}</td>
+                    <td class="clickable" onclick="focusMarkerOnMap(${marker.latitude}, ${marker.longitude})">${marker.longitude}</td>
                     <td>${marker.deskripsi || 'No description'}</td>
                     <td>
                         <button onclick="editMarkerFromTable(${marker.id})" class="edit-btn">Edit</button>
@@ -425,51 +386,66 @@ function updateMarkerTable() {
                 `;
                 tableBody.appendChild(row);
             });
+            console.log('Table updated');  // Log untuk memastikan tabel terupdate
         })
         .catch(error => console.error('Error loading marker table:', error));
 }
 
-// Function to edit marker from table
-function editMarkerFromTable(id) {
-    fetch(`get_markers.php?id=${id}`)
+// Fungsi untuk mengarahkan ke marker berdasarkan latitude dan longitude
+function focusMarkerOnMap(latitude, longitude) {
+    // Misalnya jika menggunakan Leaflet, kita bisa mengarahkan peta ke lokasi tersebut
+    const map = window.map; // Pastikan variabel map sudah ada dan sesuai dengan instansi peta Anda
+    map.setView([latitude, longitude], 14);  // Menetapkan titik pusat peta ke koordinat yang dipilih
+}
+
+function editMarkerFromTable(originalId) {
+    fetch(`get_markers.php?id=${originalId}`)
         .then(response => response.json())
         .then(data => {
             if (data) {
+                // Mengisi form dengan data marker yang ada
                 document.getElementById('popupTitle').innerText = "Edit Marker";
-                document.getElementById('addLocationName').value = data.name;
-                document.getElementById('addDeskripsi').value = data.deskripsi || '';
-                document.getElementById('addLatitude').value = data.latitude;
-                document.getElementById('addLongitude').value = data.longitude;
-                document.getElementById('markerId').value = data.id;
-                document.getElementById('addMarkerPopup').classList.add('open');
+                document.getElementById('editLocationName').value = data.name || '';
+                document.getElementById('editDeskripsi').value = data.deskripsi || '';
+                document.getElementById('editLatitude').value = data.latitude || '';
+                document.getElementById('editLongitude').value = data.longitude || '';
+                document.getElementById('markerId').value = originalId;  // Set the hidden marker ID
+                document.getElementById('editMarkerPopup').classList.add('open');
             }
         })
         .catch(error => console.error('Error:', error));
 }
 
+function closeEditMarkerPopup() {
+    document.getElementById('editMarkerPopup').classList.remove('open');
+}
+
+
+
+
+
 // Function to delete marker from table
-function deleteMarkerFromTable(id) {
+function deleteMarkerFromTable(originalId) {
     if (confirm('Are you sure you want to delete this marker?')) {
         fetch('delete_marker.php', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: new URLSearchParams({
-                'id': id
-            })
+            body: new URLSearchParams({ 'id': originalId })
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                updateMarkerTable();
-                loadMarkers();
+                loadMarkers(); // Reload markers
+                alert(data.message);
             }
-            alert(data.message);
         })
         .catch(error => console.error('Error:', error));
-    }
 }
+}
+
+
 
 // Modify your existing loadMarkers function to also update the table
 const originalLoadMarkers = loadMarkers;
@@ -477,31 +453,6 @@ loadMarkers = function() {
     originalLoadMarkers();
     updateMarkerTable();
 };
-
-// Update form submission to refresh table
-document.getElementById('markerForm').addEventListener('submit', function (event) {
-    event.preventDefault();
-
-    var formData = new FormData(this);
-    formData.append('deskripsi', document.getElementById('addDeskripsi').value);
-
-    fetch('save_marker.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            alert(data.message);
-            closeAddMarkerPopup();
-            loadMarkers();
-            updateMarkerTable();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(error => console.error('Error:', error));
-});
 
 
         // Load markers when the page loads

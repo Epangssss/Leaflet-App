@@ -307,22 +307,6 @@ function previousSlide() {
                 .catch(error => console.error('Error:', error));
         }
 
-function editMarker(id) {
-    fetch(`get_markers.php?id=${id}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data) {
-                const newName = prompt("Edit Marker Name:", data.name);
-                const newDescription = prompt("Edit Marker Description:", data.deskripsi || ""); // Tambahkan prompt untuk deskripsi
-                if (newName !== null && newDescription !== null) {
-                    saveMarker(id, newName, newDescription);
-                }
-            } else {
-                alert('Error fetching marker data.');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-}
 
 
 function saveMarker(id, name, description) {
