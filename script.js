@@ -358,7 +358,18 @@ function saveMarkerChanges() {
 }
 
 
+let markerData = []; // Untuk menyimpan data marker
 
+// Fungsi untuk fetch marker data dan update tabel
+function fetchMarkerData() {
+    fetch('get_markers.php') // Ganti dengan URL yang benar untuk mengambil data marker
+        .then(response => response.json())
+        .then(data => {
+            markerData = data; // Menyimpan data marker yang diterima
+            updateMarkerTable(); // Memperbarui tabel setelah data diterima
+        })
+        .catch(error => console.error('Error fetching marker data:', error));
+}
 
 // Function to update the marker table
 function updateMarkerTable() {
@@ -397,6 +408,35 @@ function focusMarkerOnMap(latitude, longitude) {
     const map = window.map; // Pastikan variabel map sudah ada dan sesuai dengan instansi peta Anda
     map.setView([latitude, longitude], 14);  // Menetapkan titik pusat peta ke koordinat yang dipilih
 }
+function searchTable() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase(); // Ambil nilai input pencarian
+    const tableRows = document.getElementById('markerTable').getElementsByTagName('tr');
+
+    // Loop melalui setiap baris tabel (selain header) dan sembunyikan baris yang tidak sesuai pencarian
+    for (let i = 1; i < tableRows.length; i++) {
+        const row = tableRows[i];
+        const cells = row.getElementsByTagName('td');
+        let rowContainsSearchTerm = false;
+
+        // Cek apakah salah satu kolom mengandung kata kunci pencarian
+        for (let j = 0; j < cells.length; j++) {
+            if (cells[j].textContent.toLowerCase().includes(searchInput)) {
+                rowContainsSearchTerm = true;
+                break;
+            }
+        }
+
+        // Tampilkan atau sembunyikan baris berdasarkan pencarian
+        if (rowContainsSearchTerm) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+}
+
+document.getElementById('searchInput').addEventListener('keyup', searchTable);
+
 
 function editMarkerFromTable(originalId) {
     fetch(`get_markers.php?id=${originalId}`)
@@ -446,6 +486,7 @@ function deleteMarkerFromTable(originalId) {
 }
 
 
+fetchMarkerData();
 
 // Modify your existing loadMarkers function to also update the table
 const originalLoadMarkers = loadMarkers;

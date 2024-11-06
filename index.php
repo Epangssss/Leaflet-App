@@ -93,6 +93,10 @@
     <!-- Table for displaying marker data -->
     <div id="markerTableContainer">
         <h2>Marker Data</h2>
+
+        <!-- Input pencarian -->
+        <input type="text" id="searchInput" placeholder="Search..." onkeyup="searchTable()" />
+
         <table id="markerTable">
             <thead>
                 <tr>
@@ -106,14 +110,7 @@
             </thead>
             <tbody></tbody>
         </table>
-
-        <!-- Pagination controls -->
-        <div id="paginationControls">
-            <button id="prevButton" onclick="changePage('prev')">Previous</button>
-            <button id="nextButton" onclick="changePage('next')">Next</button>
-        </div>
     </div>
-
 
 
     <!-- Include Leaflet JS -->
