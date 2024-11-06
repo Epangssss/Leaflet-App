@@ -1,4 +1,4 @@
-localStorage.removeItem("bookmarks");
+
 
 var map = L.map('map').setView([-8.1665, 113.6926], 13);
 
