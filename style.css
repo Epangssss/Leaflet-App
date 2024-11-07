@@ -1,0 +1,190 @@
+
+*{
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+
+
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+        
+        .icon-btn {
+            position: absolute;
+            top: 20px; /* Jarak dari atas */
+            right: 100px; /* Jarak dari kanan */
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        
+        #addMarkerIcon {
+            right: 120px;
+        }
+
+        /* #historyIcon {
+            right: 90px;
+        } */
+
+        #searchContainer {
+            position: absolute;
+            top: 25px;
+            left: 72%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            z-index: 1000;
+            width: 20vw;
+        }
+
+        #searchContainer input {
+            margin-right: 5px;
+            padding: 5px;
+            font-size: 1.2vw;
+            width: 15vw;
+            box-sizing: border-box;
+        }
+
+        #searchContainer button {
+            padding: 5px 10px;
+            font-size: 1.2vw;
+            cursor: pointer;
+        }
+
+        /* Add these styles to your style.css file */
+#markerTableContainer {
+    margin: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#markerTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#markerTable th,
+#markerTable td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+#markerTable th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+#markerTable tr:hover {
+    background-color: #f9f9f9;
+}
+
+.edit-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #45a049;
+}
+
+.delete-btn:hover {
+    background-color: #da190b;
+}
+
+        .popup-container {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            width: 300px;
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 2000;
+        }
+
+        .popup-container.open {
+            display: block;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .popup-header button {
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .popup-footer {
+            text-align: right;
+        }
+
+        .popup-footer button {
+            margin: 5px;
+        }
+
+        .popup-container input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+
+   .historyPopup ul {
+    list-style: none;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.historyPopup li {
+    margin-bottom: 10px;
+    text-decoration: underline;
+    cursor: pointer;
+    color: blue;
+}
+
+.historyPopup button {
+    background-color: grey;
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+}
+
+.history-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.history-navigation button {
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+
+
+
+    
