@@ -1,4 +1,10 @@
 
+*{
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+
+
         #map {
             height: 500px;
             width: 100%;
@@ -6,7 +12,8 @@
         
         .icon-btn {
             position: absolute;
-            top: 10px;
+            top: 20px; /* Jarak dari atas */
+            right: 100px; /* Jarak dari kanan */
             background-color: white;
             border-radius: 50%;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
@@ -14,18 +21,18 @@
             cursor: pointer;
             z-index: 1000;
         }
-
+        
         #addMarkerIcon {
-            right: 150px;
+            right: 120px;
         }
 
-        #historyIcon {
+        /* #historyIcon {
             right: 90px;
-        }
+        } */
 
         #searchContainer {
-            position: fixed;
-            top: 15px;
+            position: absolute;
+            top: 25px;
             left: 72%;
             transform: translateX(-50%);
             display: flex;

@@ -19,9 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = isset($_POST['markerId']) ? intval($_POST['markerId']) : 0;
     $name = isset($_POST['name']) ? trim($_POST['name']) : '';
     $description = isset($_POST['description']) ? trim($_POST['description']) : '';
+    $category = isset($_POST['kategori']) ? trim($_POST['kategori']) : ''; // Menambahkan kategori
 
-    // Memvalidasi ID dan name
-    if ($id > 0 && !empty($name)) {
+    // Memvalidasi ID, name, dan kategori
+    if ($id > 0 && !empty($name) && !empty($category)) {
         // Inisialisasi variabel untuk image_url
         $image_url = null;
 
@@ -53,15 +54,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Query untuk memperbarui marker dengan deskripsi dan gambar (jika ada gambar baru)
+        // Query untuk memperbarui marker dengan deskripsi, kategori, dan gambar (jika ada gambar baru)
         if ($image_url) {
-            // Jika ada gambar baru, update kolom image_url
-            $stmt = $conn->prepare("UPDATE locations SET name = ?, deskripsi = ?, image_url = ? WHERE id = ?");
-            $stmt->bind_param("sssi", $name, $description, $image_url, $id);
+            // Jika ada gambar baru, update kolom image_url dan kategori
+            $stmt = $conn->prepare("UPDATE locations SET name = ?, deskripsi = ?, kategori = ?, image_url = ? WHERE id = ?");
+            $stmt->bind_param("ssssi", $name, $description, $category, $image_url, $id);
         } else {
-            // Jika tidak ada gambar baru, hanya update name dan deskripsi
-            $stmt = $conn->prepare("UPDATE locations SET name = ?, deskripsi = ? WHERE id = ?");
-            $stmt->bind_param("ssi", $name, $description, $id);
+            // Jika tidak ada gambar baru, hanya update name, deskripsi, dan kategori
+            $stmt = $conn->prepare("UPDATE locations SET name = ?, deskripsi = ?, kategori = ? WHERE id = ?");
+            $stmt->bind_param("sssi", $name, $description, $category, $id);
         }
 
         if ($stmt->execute()) {
@@ -79,3 +80,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $conn->close();
+?>

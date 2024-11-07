@@ -12,12 +12,10 @@
 </head>
 
 <body>
-    <center>
-        <h1>Leaflet Map untuk SIG</h1>
-    </center>
+    <h1 style="margin-left: 80px;" >Leaflet Map untuk SIG</h1>
     <div id="map"></div>
     <div id="addMarkerIcon" class="icon-btn" onclick="showAddMarkerPopup()">➕</div>
-    <div id="historyIcon" class="icon-btn" onclick="showHistoryPopup()">🗒️</div>
+    <!-- <div id="historyIcon" class="icon-btn" onclick="showHistoryPopup()">🗒️</div> -->
 
     <!-- Search Input -->
     <div id="searchContainer">
@@ -37,6 +35,13 @@
             <input type="text" name="latitude" id="addLatitude" placeholder="Latitude" readonly />
             <input type="text" name="longitude" id="addLongitude" placeholder="Longitude" readonly />
             <input type="file" name="image" accept="image/*" />
+
+            <!-- Kategori Dropdown -->
+            <label for="kategori_id">Kategori:</label>
+            <select name="kategori_id" id="kategori_id">
+                
+            </select><br>
+
             <input type="hidden" name="markerId" id="markerId" />
             <div class="popup-footer">
                 <button type="submit">Save</button>
@@ -44,6 +49,8 @@
             </div>
         </form>
     </div>
+
+
 
     <!-- Popup for editing marker -->
     <div id="editMarkerPopup" class="popup-container">
@@ -57,16 +64,26 @@
             <input type="text" name="latitude" id="editLatitude" placeholder="Latitude" />
             <input type="text" name="longitude" id="editLongitude" placeholder="Longitude" />
             <input type="file" name="image" id="editImage" accept="image/*" />
-            <input type="hidden" name="markerId" id="markerId" />
+
+            <!-- Kategori Dropdown untuk Edit -->
+            <label for="editCategorySelect">Kategori:</label>
+            <select name="kategori" id="editCategorySelect" required>
+                <!-- Kategori akan dimuat di sini oleh JavaScript nanti -->
+                <option value="tidak ada">tidak ada</option>
+                <!-- Dll... -->
+            </select>
+
+            <input type="hidden" name="markerId" id="editMarkerId" />
             <div class="popup-footer">
                 <button type="button" id="saveChangesButton" onclick="saveMarkerChanges()">Save Changes</button>
                 <button type="button" onclick="closeEditMarkerPopup()">Cancel</button>
             </div>
         </form>
-
     </div>
 
-    <!-- Popup for history markers -->
+
+
+    <!-- Popup for history markers
     <div id="historyPopup" class="popup-container historyPopup">
         <div class="popup-header">
             <h3>History</h3>
@@ -77,15 +94,18 @@
             <button onclick="previousSlide()" id="prevButton" disabled>Previous</button>
             <button onclick="nextSlide()" id="nextButton">Next</button>
         </div>
-    </div>
+    </div> -->
 
 
-    <!-- Tombol untuk menampilkan sidebar bookmark -->
     <div id="bookmarkIcon" class="icon-btn" onclick="toggleBookmarkSidebar()">📌</div>
-    <!-- Sidebar untuk daftar bookmark -->
+
+    <!-- Sidebar untuk daftar kategori -->
     <div id="bookmarkSidebar" class="sidebar">
-        <h2>Bookmarks</h2>
-        <ul id="bookmarkList"></ul>
+        <h2>bookmark</h2>
+        
+        <!-- Daftar kategori yang akan ditampilkan dalam kotak persegi panjang -->
+        <div id="categoryList"></div>
+
         <button onclick="closeBookmarkSidebar()">Close</button>
     </div>
 
@@ -100,11 +120,12 @@
         <table id="markerTable">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>No</th>
                     <th>Nama</th>
                     <th>Latitude</th>
                     <th>Longitude</th>
                     <th>Deskripsi</th>
+                    <th>Kategori</th>
                     <th>Aksi</th>
                 </tr>
             </thead>

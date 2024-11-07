@@ -4,6 +4,7 @@ $username = "root";
 $password = "";
 $dbname = "leaflet";
 
+// Buat koneksi
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 if ($conn->connect_error) {
@@ -13,7 +14,11 @@ if ($conn->connect_error) {
 if (isset($_GET['id'])) {
     // Jika ada ID yang dikirimkan, ambil data marker berdasarkan ID
     $id = intval($_GET['id']);
-    $sql = "SELECT id, name, latitude, longitude, image_url, deskripsi FROM locations WHERE id = ?";
+    // Query dengan JOIN untuk mengambil nama kategori
+    $sql = "SELECT l.id, l.name, l.latitude, l.longitude, l.image_url, l.deskripsi, k.nama_kategori 
+            FROM locations l 
+            LEFT JOIN kategori k ON l.kategori_id = k.id_kategori 
+            WHERE l.id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
     $stmt->execute();
@@ -24,18 +29,19 @@ if (isset($_GET['id'])) {
         echo json_encode(["status" => "error", "message" => "Marker not found."]);
     }
 } else {
-    // Ambil semua marker jika tidak ada ID
-    $sql = "SELECT id, name, latitude, longitude, image_url, deskripsi FROM locations";
+    // Ambil semua marker dengan kategori
+    $sql = "SELECT l.id, l.name, l.latitude, l.longitude, l.deskripsi, l.image_url, k.nama_kategori 
+            FROM locations l 
+            LEFT JOIN kategori k ON l.kategori_id = k.id_kategori";
     $result = $conn->query($sql);
-
-    $markers = array();
+    
+    $locations = [];
     while ($row = $result->fetch_assoc()) {
-        $markers[] = $row;
+        $locations[] = $row;
     }
-
-    echo json_encode($markers);
+    
+    echo json_encode($locations);
 }
 
-
-
 $conn->close();
+?>

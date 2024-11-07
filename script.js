@@ -1,5 +1,3 @@
-
-
 var map = L.map('map').setView([-8.1665, 113.6926], 13);
 
         // Load tile layer
@@ -59,60 +57,103 @@ var map = L.map('map').setView([-8.1665, 113.6926], 13);
     }
 }
 
-let bookmarks = JSON.parse(localStorage.getItem("bookmarks")) || [];
 
+
+//bookmark
+
+let categories = [];
+let markers = [];
+
+// Fungsi untuk menampilkan atau menyembunyikan sidebar bookmark
 function toggleBookmarkSidebar() {
     const sidebar = document.getElementById("bookmarkSidebar");
     sidebar.style.display = sidebar.style.display === "block" ? "none" : "block";
-    renderBookmarkList(); 
 }
 
+// Fungsi untuk menutup sidebar
 function closeBookmarkSidebar() {
     document.getElementById("bookmarkSidebar").style.display = "none";
 }
 
-function addBookmark(name, latitude, longitude) {
-    const exists = bookmarks.some(bookmark => 
-        bookmark.name === name && bookmark.latitude === latitude && bookmark.longitude === longitude
-    );
-
-    if (!exists) {
-        bookmarks.push({ name, latitude, longitude });
-        localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
-        renderBookmarkList();
-    }
+// Fungsi untuk mengambil kategori dan marker dari server
+function fetchCategoriesAndMarkers() {
+    fetch("get_categories_and_markers.php")
+        .then(response => response.json())
+        .then(data => {
+            categories = data.categories; // Data kategori
+            markers = data.markers; // Data marker
+            renderCategoryList(); // Render kategori saat data diterima
+            displayMarkers(markers); // Tampilkan semua marker pada awalnya
+        })
+        .catch(error => console.error("Error fetching categories and markers:", error));
 }
 
-function renderBookmarkList() {
-    const list = document.getElementById("bookmarkList");
-    list.innerHTML = ""; 
+// Panggil fungsi setelah mendefinisikan
+fetchCategoriesAndMarkers();
 
-    bookmarks.forEach((bookmark, index) => {
-        const listItem = document.createElement("li");
-        listItem.textContent = bookmark.name;
-        listItem.onclick = () => goToBookmark(bookmark.latitude, bookmark.longitude);
-        list.appendChild(listItem);
+// Fungsi untuk menampilkan daftar kategori dalam bentuk kotak
+function renderCategoryList() {
+    const categoryList = document.getElementById("categoryList");
+    categoryList.innerHTML = ""; // Mengosongkan daftar kategori
+
+    categories.forEach(category => {
+        const categoryBox = document.createElement("div");
+        categoryBox.classList.add("category-box"); // Tambahkan kelas CSS untuk kategori
+        categoryBox.textContent = category.nama_kategori; // Menampilkan nama kategori
+        categoryBox.onclick = () => showMarkerListByCategory(category.id_kategori); // Ketika kategori dipilih, tampilkan daftar marker
+        categoryList.appendChild(categoryBox);
     });
 }
 
-function goToBookmark(latitude, longitude) {
-    map.setView([latitude, longitude], 15); 
+
+
+// Fungsi untuk menampilkan daftar marker berdasarkan kategori
+function showMarkerListByCategory(categoryId) {
+    const categoryList = document.getElementById("categoryList");
+    categoryList.innerHTML = ""; // Kosongkan daftar kategori atau marker sebelumnya
+
+    // Filter marker berdasarkan kategori yang dipilih
+    const filteredMarkers = markers.filter(marker => marker.kategori_id === categoryId);
+
+    // Tampilkan daftar marker berdasarkan kategori yang dipilih
+    filteredMarkers.forEach(marker => {
+        const markerItem = document.createElement("div");
+        markerItem.classList.add("marker-item"); // Kelas CSS untuk styling marker list
+        markerItem.textContent = marker.name; // Tampilkan nama marker
+        markerItem.onclick = () => {
+            map.setView([marker.latitude, marker.longitude], 15); // Zoom ke marker saat diklik
+        };
+        categoryList.appendChild(markerItem);
+    });
+
+    // Buat tombol kembali ke daftar kategori dan tempatkan di bawah daftar marker
+    const backButton = document.createElement("button");
+    backButton.textContent = "Kembali";
+    backButton.onclick = renderCategoryList;
+    backButton.classList.add("back-button"); // Tambahkan kelas untuk styling
+
+    categoryList.appendChild(backButton);
+
 }
 
-function fetchMarkers() {
-    fetch("get_markers.php")
-        .then(response => response.json())
-        .then(data => {
-            data.forEach(marker => {
-                addBookmark(marker.name, marker.latitude, marker.longitude);
-            });
-        })
-        .catch(error => console.error("Error fetching markers:", error));
+// Fungsi untuk menampilkan marker pada peta
+function displayMarkers(markersToDisplay) {
+    // Hapus semua marker dari map sebelum menambahkan yang baru
+    map.eachLayer(layer => {
+        if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
+
+    markersToDisplay.forEach(marker => {
+        L.marker([marker.latitude, marker.longitude])
+            .addTo(map)
+            .bindPopup(marker.name);
+    });
 }
 
-if (bookmarks.length === 0) {
-    fetchMarkers();
-}
+
+
 
 
 
@@ -150,18 +191,18 @@ function loadMarkers() {
     let currentSlide = 0;
     const itemsPerPage = 5;
 
-    function showHistoryPopup() {
-         closeAddMarkerPopup();
-        fetch('get_markers.php')
-            .then(response => response.json())
-            .then(data => {
-                console.log("Markers data:", data); // Log data untuk debugging
-                populateHistoryList(data, currentSlide);
-                document.getElementById('historyPopup').classList.add('open');
+    // function showHistoryPopup() {
+    //      closeAddMarkerPopup();
+    //     fetch('get_markers.php')
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             console.log("Markers data:", data); // Log data untuk debugging
+    //             populateHistoryList(data, currentSlide);
+    //             document.getElementById('historyPopup').classList.add('open');
 
-                     document.addEventListener('click', handleOutsideClick);
-            });
-    }
+    //                  document.addEventListener('click', handleOutsideClick);
+    //         });
+    // }
 
 function closeAddMarkerPopup() {
     document.getElementById('addMarkerPopup').classList.remove('open');
@@ -307,9 +348,6 @@ function previousSlide() {
                 })
                 .catch(error => console.error('Error:', error));
         }
-
-
-
 
 
 // Fungsi untuk menyimpan perubahan marker
@@ -461,9 +499,6 @@ function closeEditMarkerPopup() {
 }
 
 
-
-
-
 // Function to delete marker from table
 function deleteMarkerFromTable(originalId) {
     if (confirm('Are you sure you want to delete this marker?')) {
@@ -499,3 +534,32 @@ loadMarkers = function() {
         // Load markers when the page loads
         loadMarkers();
 
+
+
+
+// Fungsi untuk memuat kategori dari server
+function loadCategories() {
+    var kategoriSelect = document.getElementById('kategori_id');
+    
+    // Menggunakan Fetch API untuk mengambil data kategori
+    fetch('load_categories.php')
+        .then(response => response.json())
+        .then(data => {
+            // Menghapus semua opsi di dropdown terlebih dahulu
+            kategoriSelect.innerHTML = '<option value="">Pilih Kategori</option>';
+
+            // Menambahkan kategori ke dalam dropdown
+            data.forEach(function(category) {
+                var option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.nama_kategori;
+                kategoriSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading categories:', error));
+}
+
+// Memanggil fungsi loadCategories saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    loadCategories();
+});

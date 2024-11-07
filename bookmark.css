@@ -4,7 +4,7 @@
     right: 0;
     top: 0;
     width: 250px;
-    height: 100%;
+    max-height: 60%;
     background-color: #f8f9fa;
     box-shadow: -3px 0 8px rgba(0, 0, 0, 0.2);
     display: none;
@@ -13,45 +13,81 @@
     overflow-y: auto;
 }
 
+/* Heading kategori */
 #bookmarkSidebar h2 {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 20px;
     color: #333;
+    text-align: center;
+    margin-top: 30px;
 }
 
-/* List Bookmark */
-#bookmarkList {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-#bookmarkList li {
-    background: #ffffff;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    padding: 12px 15px;
-    font-size: 16px;
-    color: #444;
+/* Daftar kategori yang akan muncul dalam kotak persegi panjang */
+/* Tambahkan Flexbox pada container daftar marker */
+#categoryList {
     display: flex;
-    align-items: center;
+    flex-direction: column; /* Membuat item di dalamnya vertikal */
+    gap: 10px;
+    padding: 10px;
+    max-height: 80%; /* Batas tinggi untuk scroll otomatis */
+    overflow-y: auto;
+}
+
+
+.marker-item {
+    background-color: #ff5252;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s;
+    display: block;
+    width: 100%;
+    color: white;
 }
 
-#bookmarkList li:hover {
-    background-color: #007bff;
-    color: #ffffff;
-    box-shadow: 0px 4px 8px rgba(0, 123, 255, 0.2);
+/* Efek hover pada marker-item */
+.marker-item:hover {
+    color: black;
+    background-color: #e0e0e0;
 }
 
-/* Ikon Bookmark */
-#bookmarkList li::before {
-    content: '📍';
-    margin-right: 10px;
-    font-size: 18px;
+/* Pastikan tombol kembali selalu di bagian bawah */
+.back-button {
+    margin-top: auto; /* Dorong tombol kembali ke bawah */
+    padding: 10px;
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    margin-right: 200px;
+}
+
+.back-button:hover {
+    background-color: #e53d3f;
+}
+
+
+/* Kotak kategori */
+.category-box {
+    background-color: #f2f2f2;  /* Warna latar belakang kotak */
+    border: 1px solid #ccc;  /* Border kotak */
+    padding: 10px 15px;  /* Jarak dalam kotak */
+    margin: 5px 0;  /* Jarak antara kotak */
+    border-radius: 5px;  /* Membuat sudut kotak melengkung */
+    cursor: pointer;  /* Mengubah pointer mouse saat berada di atas kategori */
+    transition: background-color 0.3s ease;  /* Efek transisi saat hover */
+    width: 100%;  /* Mengatur lebar kotak agar bisa menyesuaikan */
+    box-sizing: border-box;  /* Menghindari overflow dari padding */
+}
+
+/* Menambahkan efek hover untuk kategori */
+.category-box:hover {
+    background-color: #ff5656;  /* Warna latar belakang saat hover */
 }
 
 /* Tombol Close Sidebar */
@@ -72,5 +108,3 @@
 #bookmarkSidebar button:hover {
     background-color: #ff2d2f;
 }
-
-
