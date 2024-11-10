@@ -169,32 +169,7 @@ function displayMarkers(markersToDisplay) {
 
 
 
-function loadMarkers() {
-    fetch('get_markers.php')
-        .then(response => response.json())
-        .then(data => {
-            map.eachLayer(function (layer) {
-                if (layer instanceof L.Marker) {
-                    map.removeLayer(layer);
-                }
-            });
 
-            data.forEach(function (location) {
-                var marker = L.marker([location.latitude, location.longitude]).addTo(map);
-                marker.bindTooltip(location.name, { permanent: true, direction: 'top' }).openTooltip();
-
-                var popupContent = '<b>' + location.name + '</b><br>' +
-                    (location.deskripsi ? '<p>' + location.deskripsi + '</p>' : '') + // Show description if available
-                    'Latitude: ' + location.latitude + '<br>' +
-                    'Longitude: ' + location.longitude + '<br>' +
-                    (location.image_url ? '<img src="' + location.image_url + '" alt="' + location.name + '" style="width: 100%; height: auto;" />' : '') +
-                    '<br><button onclick="editMarker(' + location.id + ')">Edit</button>' +
-                    '<button onclick="deleteMarker(' + location.id + ')">Delete</button>';
-
-                marker.bindPopup(popupContent);
-            });
-        });
-}
 
 
 
@@ -367,9 +342,10 @@ function saveMarkerChanges() {
     const latitude = document.getElementById('editLatitude').value;
     const longitude = document.getElementById('editLongitude').value;
     const deskripsi = document.getElementById('editDeskripsi').value;
+    const kategori =document.getElementById('editCategorySelect').value;
 
     // Validasi input sebelum dikirim
-    if (!name || !latitude || !longitude || !deskripsi) {
+    if (!name || !latitude || !longitude || !deskripsi || !kategori) {
         alert('All fields are required!');
         return;
     }
@@ -379,7 +355,8 @@ function saveMarkerChanges() {
     formData.append('name', name);
     formData.append('latitude', latitude);
     formData.append('longitude', longitude);
-    formData.append('description', deskripsi); // Menggunakan 'description' sesuai dengan PHP
+    formData.append('description', deskripsi);
+    formData.append('kategori', kategori);
 
     // Jika ada gambar baru
     const imageInput = document.getElementById('editImage');

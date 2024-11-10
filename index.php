@@ -66,13 +66,28 @@
             <input type="text" name="longitude" id="editLongitude" placeholder="Longitude" />
             <input type="file" name="image" id="editImage" accept="image/*" />
 
-            <!-- Kategori Dropdown untuk Edit -->
             <label for="editCategorySelect">Kategori:</label>
             <select name="kategori" id="editCategorySelect" required>
-                <!-- Kategori akan dimuat di sini oleh JavaScript nanti -->
-                <option value="tidak ada">tidak ada</option>
-        
+            <option value="">Pilih Kategori</option>
+
             </select>
+            <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        fetch('get_categories.php')
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('editCategorySelect');
+                
+                data.forEach(kategori => {
+                    const option = document.createElement('option');
+                    option.value = kategori.id_kategori;
+                    option.textContent = kategori.nama_kategori;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error fetching kategori:', error));
+    });
+</script>
 
             <input type="hidden" name="markerId" id="editMarkerId" />
             <div class="popup-footer">
@@ -111,7 +126,7 @@
     </div>
 
 
-    <!-- Table for displaying marker data -->
+ 
     <div id="markerTableContainer">
         <h2>Marker Data</h2>
 
@@ -134,6 +149,7 @@
         </table>
     </div>
 
+    
 
     <!-- Include Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
